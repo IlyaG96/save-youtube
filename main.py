@@ -8,6 +8,7 @@ import os
 
 class BotStates(Enum):
     START = auto()
+    CHOSE_RES = auto()
     AWAIT_LINK = auto()
 
 
@@ -35,7 +36,7 @@ def process_playlist(update, context):
         return BotStates.AWAIT_LINK
 
     for video in playlist.videos:
-        stream = video.streams.filter(res='720p').first() # .download()
+        stream = video.streams.filter(res='720p').first()  # .download()
         context.bot.send_message(
             text=f"Скачиваю видео {stream.title}",
             chat_id=update.message.chat_id,
@@ -47,6 +48,7 @@ def process_playlist(update, context):
                      f"{stream.url}",
                 chat_id=update.message.chat_id,
             )
+            continue
 
         with open(file=f'{stream.default_filename}', mode='rb') as tg_video:
             context.bot.send_video(
