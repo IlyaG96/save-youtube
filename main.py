@@ -41,15 +41,16 @@ def process_playlist(update, context):
             text=f"Скачиваю видео {stream.title}",
             chat_id=update.message.chat_id,
         )
-        stream.download()
-        if os.path.getsize(stream.default_filename) > 50000000:
+        if stream.filesize_approx > 50000000:
             context.bot.send_message(
                 text=f"Видео {stream.title} имеет размер более 50 мегабайт, вот ссылка на скачивание:"
                      f"{stream.url}",
                 chat_id=update.message.chat_id,
             )
+
             continue
 
+        stream.download()
         with open(file=f'{stream.default_filename}', mode='rb') as tg_video:
             context.bot.send_video(
                 chat_id=update.message.chat_id,
