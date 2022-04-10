@@ -4,7 +4,7 @@ from environs import Env
 from pytube import Playlist
 from textwrap import dedent
 import os
-
+from telegram.error import BadRequest
 
 class BotStates(Enum):
     START = auto()
@@ -37,25 +37,27 @@ def process_playlist(update, context):
 
     for video in playlist.videos:
         stream = video.streams.filter(res='720p').first()  # .download()
-        context.bot.send_message(
-            text=f"Скачиваю видео {stream.title}",
-            chat_id=update.message.chat_id,
-        )
-        if stream.filesize_approx > 50000000:
+        try:
+            if stream.filesize_approx > 50000000:
+                context.bot.send_message(
+                    text=f"Видео {stream.title} имеет размер более 50 мегабайт, вот ссылка на скачивание: \n"
+                         f"{stream.url}",
+                    chat_id=update.message.chat_id,
+                )
+
+                continue
+
+            context.bot.send_video(
+                chat_id=update.message.chat_id,
+                caption=f'{stream.title}',
+                video=stream.url
+            )
+        except BadRequest:
             context.bot.send_message(
-                text=f"Видео {stream.title} имеет размер более 50 мегабайт, вот ссылка на скачивание: \n"
-                     f"{stream.url}",
+                text=f"Какая-то ошибка с видео {stream.title}. Не могу загрузить :(",
                 chat_id=update.message.chat_id,
             )
-
             continue
-
-        context.bot.send_video(
-            chat_id=update.message.chat_id,
-            caption=f'{stream.title}',
-            video=stream.url
-        )
-
 
 
 def main():
